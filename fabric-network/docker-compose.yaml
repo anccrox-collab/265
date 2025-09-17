@@ -102,6 +102,8 @@ services:
       - CORE_PEER_BCCSP_SW_FILEKEYSTORE_KEYSTORE=/etc/hyperledger/fabric/msp/keystore
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_MAXRETRIES=3
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_MAXRETRIESONSTARTUP=12
       - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
       - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
     volumes:
@@ -150,6 +152,9 @@ services:
       - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.herbionyx.com/peers/peer0.org1.herbionyx.com/tls/ca.crt
       - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.herbionyx.com/users/Admin@org1.herbionyx.com/msp
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    # Add DNS resolution for better container connectivity
+    extra_hosts:
+      - "orderer.herbionyx.com:127.0.0.1"
     command: /bin/bash
     volumes:
       - ./organizations:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
