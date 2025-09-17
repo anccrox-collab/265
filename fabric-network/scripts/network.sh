@@ -139,12 +139,23 @@ function createChannel() {
     exit 1
   fi
   
-  # Create channel using CLI container with improved connectivity
+  # Wait for orderer to be ready
   echo -e "${YELLOW}Creating channel using CLI container...${NC}"
+  echo -e "${YELLOW}Waiting for orderer to be ready...${NC}"
+  sleep 15
   
-  # Skip ping test and proceed directly to channel creation
-  echo -e "${YELLOW}Skipping connectivity test (ping not available in CLI container)${NC}"
-  echo -e "${YELLOW}Proceeding with channel creation...${NC}"
+  # Test orderer connectivity from CLI container
+  echo -e "${YELLOW}Testing orderer connectivity...${NC}"
+  docker exec cli sh -c "
+    for i in {1..30}; do
+      if nc -z orderer.herbionyx.com 7050; then
+        echo 'Orderer is reachable'
+        break
+      fi
+      echo 'Waiting for orderer... attempt \$i/30'
+      sleep 2
+    done
+  "
   
   # Verify containers are running
   if ! docker ps --format "table {{.Names}}\t{{.Status}}" | grep -q "orderer.herbionyx.com.*Up"; then
@@ -153,10 +164,6 @@ function createChannel() {
     docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
     exit 1
   fi
-  
-  # Wait a bit more for orderer to be fully ready
-  echo -e "${YELLOW}Waiting for orderer to be fully ready...${NC}"
-  sleep 10
   
   # Create the channel
   docker exec cli peer channel create \
@@ -172,6 +179,9 @@ function createChannel() {
     echo -e "${RED}Failed to create channel${NC}"
     echo -e "${YELLOW}Checking orderer logs...${NC}"
     docker logs orderer.herbionyx.com --tail 20
+    echo -e "${YELLOW}Checking CLI container network connectivity...${NC}"
+    docker exec cli nslookup orderer.herbionyx.com
+    docker exec cli netstat -rn
     exit 1
   fi
   

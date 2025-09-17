@@ -24,7 +24,7 @@ services:
     networks:
       - herbionyx
 
-  # Orderer with system channel support
+  # Orderer with proper networking
   orderer.herbionyx.com:
     image: hyperledger/fabric-orderer:latest
     environment:
@@ -40,7 +40,7 @@ services:
       - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
       - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
       - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
-      # CRITICAL FIX: Enable system channel
+      # Use system channel for compatibility
       - ORDERER_GENERAL_BOOTSTRAPMETHOD=file
       - ORDERER_GENERAL_BOOTSTRAPFILE=/var/hyperledger/orderer/orderer.genesis.block
       - ORDERER_CHANNELPARTICIPATION_ENABLED=false
@@ -135,7 +135,7 @@ services:
     networks:
       - herbionyx
 
-  # CLI container with DNS utilities
+  # CLI container with proper networking
   cli:
     image: hyperledger/fabric-tools:latest
     tty: true
@@ -152,9 +152,6 @@ services:
       - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.herbionyx.com/peers/peer0.org1.herbionyx.com/tls/ca.crt
       - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.herbionyx.com/users/Admin@org1.herbionyx.com/msp
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
-    # Add DNS resolution for better container connectivity
-    extra_hosts:
-      - "orderer.herbionyx.com:127.0.0.1"
     command: /bin/bash
     volumes:
       - ./organizations:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
