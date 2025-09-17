@@ -147,19 +147,19 @@ function createChannel() {
   echo -e "${YELLOW}Proceeding with channel creation...${NC}"
   
   # Verify containers are running
-  if ! docker ps | grep -q "orderer.herbionyx.com.*Up"; then
+  if ! docker ps --format "table {{.Names}}\t{{.Status}}" | grep -q "orderer.herbionyx.com.*Up"; then
     echo -e "${RED}Orderer container is not running${NC}"
     echo -e "${YELLOW}Available containers:${NC}"
     docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
     exit 1
   fi
   
+  # Wait a bit more for orderer to be fully ready
+  echo -e "${YELLOW}Waiting for orderer to be fully ready...${NC}"
+  sleep 10
+  
   # Create the channel
   docker exec cli peer channel create \
-    -o orderer.herbionyx.com:7050 \
-    -c $CHANNEL_NAME \
-    --ordererTLSHostnameOverride orderer.herbionyx.com \
-    -f ./channel-artifacts/${CHANNEL_NAME}.tx \
     -o orderer.herbionyx.com:7050 \
     -c $CHANNEL_NAME \
     --ordererTLSHostnameOverride orderer.herbionyx.com \
